@@ -45,8 +45,14 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 
-# Add JS files to Customize Form doctype
-doctype_js = {"Customize Form": "public/js/export_field_fields.js"}
+# Add JS files to Customize Form, Server Script, Client Script, Custom Field and Property Setter doctypes
+doctype_js = {
+	"Customize Form": "public/js/customize_form.js",
+	"Server Script": "public/js/server_script.js",
+	"Client Script": "public/js/client_script.js",
+	"Custom Field": "public/js/custom_field.js",
+	"Property Setter": "public/js/property_setter.js"
+}
 
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
