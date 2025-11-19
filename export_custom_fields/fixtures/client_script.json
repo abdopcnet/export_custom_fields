@@ -1,0 +1,13 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2025-11-19 09:32:28.333064",
+  "module": "Export Custom Fields",
+  "name": "test",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
+ }
+]
