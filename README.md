@@ -1,6 +1,6 @@
 # Export Custom Fields
 
-![Version](https://img.shields.io/badge/version-21.11.2025-blue)
+![Version](https://img.shields.io/badge/version-25.11.2025-blue)
 
 
 A Frappe application that provides functionality to export custom fields and property setters from the database to JSON files for version control and deployment purposes.
