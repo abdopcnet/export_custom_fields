@@ -51,7 +51,8 @@ doctype_js = {
 	"Server Script": "public/js/server_script.js",
 	"Client Script": "public/js/client_script.js",
 	"Custom Field": "public/js/custom_field.js",
-	"Property Setter": "public/js/property_setter.js"
+	"Property Setter": "public/js/property_setter.js",
+	"Custom HTML Block": "public/js/custom_html_block.js"
 }
 
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
