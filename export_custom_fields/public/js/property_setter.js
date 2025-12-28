@@ -1,35 +1,52 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.customize_form");
+frappe.provide('frappe.customize_form');
 
-frappe.ui.form.on("Property Setter", {
+frappe.ui.form.on('Property Setter', {
 	refresh: function (frm) {
-		if (frappe.boot.developer_mode && frm.doc.module) {
-			// Export to Module button
-			frm
-				.add_custom_button(
-					__("📦 Export to Module"),
-					function () {
+		if (frappe.boot.developer_mode && frm.doc.doc_type) {
+			frm.add_custom_button(__('Export Customizations'), function () {
+				frappe.prompt(
+					[
+						{
+							fieldtype: 'Link',
+							fieldname: 'module',
+							options: 'Module Def',
+							label: __('Module to Export'),
+							reqd: 1,
+							default: frm.doc.module || '',
+						},
+						{
+							fieldtype: 'Check',
+							fieldname: 'sync_on_migrate',
+							label: __('Sync on Migrate'),
+							default: 1,
+						},
+						{
+							fieldtype: 'Check',
+							fieldname: 'with_permissions',
+							label: __('Export Custom Permissions'),
+							description: __(
+								'Exported permissions will be force-synced on every migrate overriding any other customization.',
+							),
+							default: 0,
+						},
+					],
+					function (data) {
 						frappe.call({
-							method: "export_custom_fields.customize_form.export_custom_fields_by_module",
+							method: 'frappe.modules.utils.export_customizations',
 							args: {
-								module: frm.doc.module,
-								sync_on_migrate: 1,
-							},
-							callback: function (r) {
-								if (!r.exc) {
-									frappe.show_alert({
-										message: __("Custom Fields exported successfully"),
-										indicator: "green",
-									});
-								}
+								doctype: frm.doc.doc_type,
+								module: data.module,
+								sync_on_migrate: data.sync_on_migrate,
+								with_permissions: data.with_permissions,
 							},
 						});
-					}
-				)
-				.addClass("btn-danger");
+					},
+					__('Select Module'),
+				);
+			}).addClass('btn-danger');
 		}
 	},
 });
-
