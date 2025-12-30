@@ -4,7 +4,7 @@
     <h2>Export Custom Fields</h2>
     <p><em>Export Your Frappe Customizations to Version Control</em></p>
 
-![Version](https://img.shields.io/badge/version-28.12.2025-blue)
+![Version](https://img.shields.io/badge/version-30.12.2025-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Frappe](https://img.shields.io/badge/Frappe-v15+-red)
 
