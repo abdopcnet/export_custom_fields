@@ -11,20 +11,20 @@ frappe.ui.form.on("Server Script", {
 			// Export to Module button
 			if (frm.doc.module) {
 				frm.add_custom_button(__("Export to Module"), function () {
-					frappe.call({
-						method: "export_custom_fields.server_script.export_server_scripts_by_module",
-						args: {
-							module: frm.doc.module,
-						},
-						callback: function (r) {
-							if (!r.exc) {
-								frappe.show_alert({
-									message: __("Server Scripts exported successfully"),
-									indicator: "green",
-								});
-							}
-						},
-					});
+						frappe.call({
+							method: "export_custom_fields.server_script.export_server_scripts_by_module",
+							args: {
+								module: frm.doc.module,
+							},
+							callback: function (r) {
+								if (!r.exc) {
+									frappe.show_alert({
+										message: __("Server Scripts exported successfully"),
+										indicator: "green",
+									});
+								}
+							},
+						});
 				}).addClass("btn-danger");
 			}
 
