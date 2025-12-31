@@ -59,7 +59,8 @@ doctype_list_js = {
     "Custom Field": "public/js/custom_field_list.js",
     "Property Setter": "public/js/property_setter_list.js",
     "Server Script": "public/js/server_script_list.js",
-    "Client Script": "public/js/client_script_list.js"
+    "Client Script": "public/js/client_script_list.js",
+    "Custom HTML Block": "public/js/custom_html_block_list.js"
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
