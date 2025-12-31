@@ -131,11 +131,12 @@ def export_custom_fields_by_module(module, sync_on_migrate=False):
 
 @frappe.whitelist()
 def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, property_setter_names=None):
-    """Bulk export Custom Fields and Property Setters grouped by their modules.
+    """Bulk export Custom Fields and Property Setters using frappe.modules.utils.export_customizations.
+    Works like the "Export Customizations" button in form view, but for multiple records.
     Each record must have a module defined. If module is not defined, export stops with error message.
 
     Args:
-        sync_on_migrate: Whether to sync on migrate
+        sync_on_migrate: Whether to sync on migrate (default: False, same as form view)
         custom_field_names: List of Custom Field names to export (optional)
         property_setter_names: List of Property Setter names to export (optional)
     """
@@ -153,7 +154,7 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
         if isinstance(property_setter_names, str):
             property_setter_names = frappe.parse_json(property_setter_names)
 
-        # Get custom fields - either selected ones or all
+        # Get custom fields - either selected ones or all visible
         if custom_field_names:
             all_custom_fields = frappe.get_all(
                 "Custom Field",
@@ -164,7 +165,7 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
         else:
             all_custom_fields = []
 
-        # Get property setters - either selected ones or all
+        # Get property setters - either selected ones or all visible
         if property_setter_names:
             all_property_setters = frappe.get_all(
                 "Property Setter",
@@ -188,7 +189,8 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
                 order_by="name"
             )
 
-        module_doctype_map = {}  # {module: {doctype: {fields: [], setters: []}}}
+        # Group by (module, doctype) - same doctype can have different modules
+        module_doctype_set = set()  # {(module, doctype), ...}
 
         # Process Custom Fields
         for field in all_custom_fields:
@@ -204,19 +206,7 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
                 frappe.throw(
                     "{0} Module Not defined".format(field.get("name")))
 
-            if module not in module_doctype_map:
-                module_doctype_map[module] = {}
-
-            if doctype not in module_doctype_map[module]:
-                module_doctype_map[module][doctype] = {
-                    "fields": [],
-                    "setters": []
-                }
-
-            # Get full field data
-            field_doc = frappe.get_doc("Custom Field", field.get("name"))
-            module_doctype_map[module][doctype]["fields"].append(
-                field_doc.as_dict())
+            module_doctype_set.add((module, doctype))
 
         # Process Property Setters
         for ps in all_property_setters:
@@ -228,69 +218,39 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
                 frappe.throw(
                     "{0} Module Not defined".format(ps.get("name")))
 
-            if module not in module_doctype_map:
-                module_doctype_map[module] = {}
+            module_doctype_set.add((module, doctype))
 
-            if doctype not in module_doctype_map[module]:
-                module_doctype_map[module][doctype] = {
-                    "fields": [],
-                    "setters": []
-                }
+        # Import frappe.modules.utils.export_customizations
+        from frappe.modules.utils import export_customizations
 
-            # Get full property setter data
-            ps_doc = frappe.get_doc("Property Setter", ps.get("name"))
-            module_doctype_map[module][doctype]["setters"].append(
-                ps_doc.as_dict())
-
-        # Export each module's doctypes
+        # Export each (module, doctype) combination using the same method as form view
         all_exported_files = []
+        exported_doctypes = set()  # Track exported doctypes to avoid duplicates
 
-        for module, doctypes in module_doctype_map.items():
-            # Get DocType Links for doctypes in this module
-            doctype_links = {}
-            if doctypes:
-                links = frappe.get_all(
-                    "DocType Link",
-                    fields="*",
-                    filters={"parent": ["in", list(
-                        doctypes.keys())], "custom": 1},
-                    order_by="name"
+        for module, doctype in module_doctype_set:
+            # Use the same export method as form view button
+            # This will export all Custom Fields and Property Setters for this doctype
+            # grouped by the specified module
+            try:
+                file_path = export_customizations(
+                    module=module,
+                    doctype=doctype,
+                    sync_on_migrate=sync_on_migrate,
+                    with_permissions=False  # Same as Custom Field form view
                 )
-                for link in links:
-                    doctype = link.get("parent")
-                    if doctype not in doctype_links:
-                        doctype_links[doctype] = []
-                    doctype_links[doctype].append(link)
-
-            # Create export folder if it doesn't exist
-            folder_path = os.path.join(get_module_path(module), "custom")
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
-
-            # Export each doctype separately
-            for doctype, data in doctypes.items():
-                fields = data.get("fields", [])
-                ps_list = data.get("setters", [])
-                links_list = doctype_links.get(doctype, [])
-
-                # Prepare data for export (same structure as system export)
-                custom = {
-                    "custom_fields": fields,
-                    "custom_perms": [],
-                    "doctype": doctype,
-                    "links": links_list,
-                    "property_setters": ps_list,
-                    "sync_on_migrate": sync_on_migrate,
-                }
-
-                # Export to JSON file (same naming convention as original)
-                filename = scrub(doctype) + ".json"
-                file_path = os.path.join(folder_path, filename)
-
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(frappe.as_json(custom, indent=2))
-
-                all_exported_files.append(file_path)
+                if file_path and file_path not in all_exported_files:
+                    all_exported_files.append(file_path)
+                    exported_doctypes.add((module, doctype))
+            except Exception as e:
+                # If export fails for one doctype, continue with others
+                frappe.log_error(
+                    "[customize_form.py] method: bulk_export_customizations - Doctype: {0}, Module: {1}".format(
+                        doctype, module
+                    ),
+                    "Bulk Export Customizations",
+                )
+                # Re-raise to stop export (as per requirement)
+                raise
 
         return {
             "exported_files": all_exported_files
@@ -302,3 +262,64 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
             "Bulk Export Customizations",
         )
         frappe.throw(_("Error during bulk export"))
+
+
+@frappe.whitelist()
+def bulk_set_module(doctype, names, module):
+    """Update module for multiple records (Custom Field or Property Setter).
+
+    Args:
+        doctype: DocType name ('Custom Field' or 'Property Setter')
+        names: List of document names to update
+        module: Module name to set
+    """
+    try:
+        if not frappe.conf.developer_mode:
+            frappe.throw(
+                _("Only allowed to update module in developer mode"))
+
+        if doctype not in ['Custom Field', 'Property Setter']:
+            frappe.throw(
+                _("Invalid doctype. Must be 'Custom Field' or 'Property Setter'"))
+
+        if not names:
+            frappe.throw(_("No records selected"))
+
+        if not module:
+            frappe.throw(_("Module is required"))
+
+        # Parse JSON if passed as string
+        if isinstance(names, str):
+            names = frappe.parse_json(names)
+
+        # Validate module exists
+        if not frappe.db.exists("Module Def", module):
+            frappe.throw(_("Module '{0}' does not exist").format(module))
+
+        # Update module for each record
+        updated_count = 0
+        for name in names:
+            try:
+                frappe.db.set_value(doctype, name, "module", module)
+                updated_count += 1
+            except Exception as e:
+                frappe.log_error(
+                    "[customize_form.py] method: bulk_set_module - Record: {0}".format(
+                        name),
+                    "Bulk Set Module",
+                )
+                raise
+
+        frappe.db.commit()
+
+        return {
+            "updated_count": updated_count,
+            "message": _("{0} records updated successfully").format(updated_count)
+        }
+
+    except Exception as e:
+        frappe.log_error(
+            "[customize_form.py] method: bulk_set_module",
+            "Bulk Set Module",
+        )
+        frappe.throw(_("Error updating module"))
