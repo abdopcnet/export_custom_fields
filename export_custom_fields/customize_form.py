@@ -7,6 +7,16 @@ from frappe import _, get_module_path, scrub
 
 
 @frappe.whitelist()
+def has_custom_fields_in_module(module):
+    """Check if there are custom fields (is_system_generated=0) in the specified module"""
+    custom_fields_count = frappe.db.count(
+        "Custom Field",
+        filters={"module": module, "is_system_generated": 0}
+    )
+    return custom_fields_count > 0
+
+
+@frappe.whitelist()
 def export_custom_fields_by_module(module, sync_on_migrate=False):
     """Export Custom Fields and Property Setters for the specified module to JSON files.
     This follows the same pattern as frappe.modules.utils.export_customizations"""
