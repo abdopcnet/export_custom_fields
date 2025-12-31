@@ -17,7 +17,7 @@ frappe.listview_settings['Client Script'] = {
 					}
 
 					frappe.call({
-						method: 'export_custom_fields.customize_form.bulk_export_customizations',
+						method: 'export_custom_fields.fixtures.bulk_export_fixtures',
 						args: {
 							client_script_names: selected,
 						},
