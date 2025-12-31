@@ -17,7 +17,7 @@ def has_custom_fields_in_module(module):
 
 
 @frappe.whitelist()
-def export_custom_fields_by_module(module, sync_on_migrate=False):
+def export_custom_fields_by_module(module, sync_on_migrate=True):
     """Export Custom Fields and Property Setters for the specified module to JSON files.
     This follows the same pattern as frappe.modules.utils.export_customizations"""
 
@@ -130,13 +130,13 @@ def export_custom_fields_by_module(module, sync_on_migrate=False):
 
 
 @frappe.whitelist()
-def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, property_setter_names=None):
+def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, property_setter_names=None):
     """Bulk export Custom Fields and Property Setters using frappe.modules.utils.export_customizations.
     Works like the "Export Customizations" button in form view, but for multiple records.
     Each record must have a module defined. If module is not defined, export stops with error message.
 
     Args:
-        sync_on_migrate: Whether to sync on migrate (default: False, same as form view)
+        sync_on_migrate: Whether to sync on migrate (default: True)
         custom_field_names: List of Custom Field names to export (optional)
         property_setter_names: List of Property Setter names to export (optional)
     """
