@@ -47,12 +47,12 @@ app_license = "mit"
 
 # Add JS files to Customize Form, Server Script, Client Script, Custom Field and Property Setter doctypes
 doctype_js = {
-    "Customize Form": "public/js/customize_form.js",
-    "Server Script": "public/js/server_script.js",
-    "Client Script": "public/js/client_script.js",
-    "Custom Field": "public/js/custom_field.js",
-    "Property Setter": "public/js/property_setter.js",
-    "Custom HTML Block": "public/js/custom_html_block.js"
+	"Customize Form": "public/js/customize_form.js",
+	"Server Script": "public/js/server_script.js",
+	"Client Script": "public/js/client_script.js",
+	"Custom Field": "public/js/custom_field.js",
+	"Property Setter": "public/js/property_setter.js",
+	"Custom HTML Block": "public/js/custom_html_block.js"
 }
 
 doctype_list_js = {
