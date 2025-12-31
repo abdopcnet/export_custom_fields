@@ -3,9 +3,9 @@
 frappe.listview_settings['Client Script'] = {
 	onload: function (listview) {
 		if (frappe.boot.developer_mode) {
-			// Bulk Export button
+			// Bulk Export to Module button
 			listview.page.add_button(
-				__('Bulk Export Customizations'),
+				__('Bulk Export to Module'),
 				function () {
 					let selected = listview.get_checked_items(true);
 					if (!selected || selected.length === 0) {
