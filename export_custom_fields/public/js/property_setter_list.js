@@ -20,6 +20,7 @@ frappe.listview_settings['Property Setter'] = {
 						method: 'export_custom_fields.customize_form.bulk_export_customizations',
 						args: {
 							property_setter_names: selected,
+							sync_on_migrate: 1,
 						},
 						freeze: true,
 						freeze_message: __('Exporting customizations...'),
