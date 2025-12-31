@@ -130,8 +130,8 @@ def export_custom_fields_by_module(module, sync_on_migrate=False):
 
 
 @frappe.whitelist()
-def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, property_setter_names=None, server_script_names=None, client_script_names=None, custom_html_block_names=None):
-    """Bulk export Custom Fields, Property Setters, Server Scripts, and Client Scripts using frappe.modules.utils.export_customizations.
+def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, property_setter_names=None):
+    """Bulk export Custom Fields and Property Setters using frappe.modules.utils.export_customizations.
     Works like the "Export Customizations" button in form view, but for multiple records.
     Each record must have a module defined. If module is not defined, export stops with error message.
 
@@ -139,8 +139,6 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
         sync_on_migrate: Whether to sync on migrate (default: False, same as form view)
         custom_field_names: List of Custom Field names to export (optional)
         property_setter_names: List of Property Setter names to export (optional)
-        server_script_names: List of Server Script names to export (optional)
-        client_script_names: List of Client Script names to export (optional)
     """
 
     try:
@@ -155,13 +153,6 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
             custom_field_names = frappe.parse_json(custom_field_names)
         if isinstance(property_setter_names, str):
             property_setter_names = frappe.parse_json(property_setter_names)
-        if isinstance(server_script_names, str):
-            server_script_names = frappe.parse_json(server_script_names)
-        if isinstance(client_script_names, str):
-            client_script_names = frappe.parse_json(client_script_names)
-        if isinstance(custom_html_block_names, str):
-            custom_html_block_names = frappe.parse_json(
-                custom_html_block_names)
 
         # Get custom fields - either selected ones or all visible
         if custom_field_names:
@@ -185,41 +176,8 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
         else:
             all_property_setters = []
 
-        # Get server scripts - either selected ones or all visible
-        if server_script_names:
-            all_server_scripts = frappe.get_all(
-                "Server Script",
-                filters={"name": ["in", server_script_names]},
-                fields=["name", "module"],
-                order_by="name"
-            )
-        else:
-            all_server_scripts = []
-
-        # Get client scripts - either selected ones or all visible
-        if client_script_names:
-            all_client_scripts = frappe.get_all(
-                "Client Script",
-                filters={"name": ["in", client_script_names]},
-                fields=["name", "module"],
-                order_by="name"
-            )
-        else:
-            all_client_scripts = []
-
-        # Get custom html blocks - either selected ones or all visible
-        if custom_html_block_names:
-            all_custom_html_blocks = frappe.get_all(
-                "Custom HTML Block",
-                filters={"name": ["in", custom_html_block_names]},
-                fields=["name", "module"],
-                order_by="name"
-            )
-        else:
-            all_custom_html_blocks = []
-
         # If no names provided, get all records
-        if not custom_field_names and not property_setter_names and not server_script_names and not client_script_names and not custom_html_block_names:
+        if not custom_field_names and not property_setter_names:
             all_custom_fields = frappe.get_all(
                 "Custom Field",
                 fields=["name", "dt", "module", "is_system_generated"],
@@ -228,21 +186,6 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
             all_property_setters = frappe.get_all(
                 "Property Setter",
                 fields=["name", "doc_type", "module"],
-                order_by="name"
-            )
-            all_server_scripts = frappe.get_all(
-                "Server Script",
-                fields=["name", "module"],
-                order_by="name"
-            )
-            all_client_scripts = frappe.get_all(
-                "Client Script",
-                fields=["name", "module"],
-                order_by="name"
-            )
-            all_custom_html_blocks = frappe.get_all(
-                "Custom HTML Block",
-                fields=["name", "module"],
                 order_by="name"
             )
 
@@ -278,81 +221,10 @@ def bulk_export_customizations(sync_on_migrate=False, custom_field_names=None, p
             module_doctype_set.add((module, doctype))
 
         # Import frappe.modules.utils functions
-        from frappe.modules.utils import export_customizations, export_doc
-
-        # Initialize exported files list
-        all_exported_files = []
-
-        # Process Server Scripts
-        for script in all_server_scripts:
-            module = script.get("module")
-
-            # Stop export if module is not defined
-            if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(script.get("name")))
-
-            # Server Scripts are exported directly, not grouped by doctype
-            try:
-                file_path = export_doc("Server Script", script.get("name"))
-                if file_path and file_path not in all_exported_files:
-                    all_exported_files.append(file_path)
-            except Exception as e:
-                frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Server Script: {0}".format(
-                        script.get("name")
-                    ),
-                    "Bulk Export Customizations",
-                )
-                raise
-
-        # Process Client Scripts
-        for script in all_client_scripts:
-            module = script.get("module")
-
-            # Stop export if module is not defined
-            if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(script.get("name")))
-
-            # Client Scripts are exported directly, not grouped by doctype
-            try:
-                file_path = export_doc("Client Script", script.get("name"))
-                if file_path and file_path not in all_exported_files:
-                    all_exported_files.append(file_path)
-            except Exception as e:
-                frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Client Script: {0}".format(
-                        script.get("name")
-                    ),
-                    "Bulk Export Customizations",
-                )
-                raise
-
-        # Process Custom HTML Blocks
-        for block in all_custom_html_blocks:
-            module = block.get("module")
-
-            # Stop export if module is not defined
-            if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(block.get("name")))
-
-            # Custom HTML Blocks are exported directly, not grouped by doctype
-            try:
-                file_path = export_doc("Custom HTML Block", block.get("name"))
-                if file_path and file_path not in all_exported_files:
-                    all_exported_files.append(file_path)
-            except Exception as e:
-                frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Custom HTML Block: {0}".format(
-                        block.get("name")
-                    ),
-                    "Bulk Export Customizations",
-                )
-                raise
+        from frappe.modules.utils import export_customizations
 
         # Export each (module, doctype) combination using the same method as form view
+        all_exported_files = []
         exported_doctypes = set()  # Track exported doctypes to avoid duplicates
 
         for module, doctype in module_doctype_set:
