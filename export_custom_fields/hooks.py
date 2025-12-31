@@ -47,15 +47,18 @@ app_license = "mit"
 
 # Add JS files to Customize Form, Server Script, Client Script, Custom Field and Property Setter doctypes
 doctype_js = {
-	"Customize Form": "public/js/customize_form.js",
-	"Server Script": "public/js/server_script.js",
-	"Client Script": "public/js/client_script.js",
-	"Custom Field": "public/js/custom_field.js",
-	"Property Setter": "public/js/property_setter.js",
-	"Custom HTML Block": "public/js/custom_html_block.js"
+    "Customize Form": "public/js/customize_form.js",
+    "Server Script": "public/js/server_script.js",
+    "Client Script": "public/js/client_script.js",
+    "Custom Field": "public/js/custom_field.js",
+    "Property Setter": "public/js/property_setter.js",
+    "Custom HTML Block": "public/js/custom_html_block.js"
 }
 
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {
+    "Custom Field": "public/js/custom_field_list.js",
+    "Property Setter": "public/js/property_setter_list.js"
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -252,4 +255,3 @@ doctype_js = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
