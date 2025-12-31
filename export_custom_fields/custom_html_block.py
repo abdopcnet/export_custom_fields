@@ -8,7 +8,7 @@ from frappe.core.doctype.data_import.data_import import export_json
 
 
 @frappe.whitelist()
-def export_custom_html_blocks_by_module(name, module, sync_on_migrate=False):
+def export_custom_html_blocks_by_module(name, module, sync_on_migrate=True):
 	"""Export the current Custom HTML Block to fixtures folder of the app that contains the selected module."""
 	
 	if not frappe.conf.developer_mode:
