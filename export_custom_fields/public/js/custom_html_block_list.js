@@ -17,7 +17,7 @@ frappe.listview_settings['Custom HTML Block'] = {
 					}
 
 					frappe.call({
-						method: 'export_custom_fields.customize_form.bulk_export_customizations',
+						method: 'export_custom_fields.fixtures.bulk_export_fixtures',
 						args: {
 							custom_html_block_names: selected,
 						},
@@ -95,4 +95,3 @@ frappe.listview_settings['Custom HTML Block'] = {
 };
 
 console.log('[custom_html_block_list.js] method: listview_settings');
-
