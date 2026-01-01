@@ -1,62 +1,83 @@
-# Export Custom Fields - Workflow
+# Workflow
 
-## Export Workflow Diagram
-
-```
-User Action
-    │
-    ├─> Open Custom Field Form
-    │   └─> Click "📦 Export to Module"
-    │       └─> Select Module
-    │           └─> export_custom_fields_by_module()
-    │               └─> Export to: {app}/{module}/custom/{doctype}.json
-    │
-    ├─> Open Property Setter Form
-    │   └─> Click "📦 Export to Module"
-    │       └─> Select Module
-    │           └─> export_custom_fields_by_module()
-    │               └─> Export to: {app}/{module}/custom/{doctype}.json
-    │
-    ├─> Open Customize Form
-    │   ├─> Click "📦 Export to Module" (Custom App)
-    │   │   └─> export_custom_fields_by_module()
-    │   │       └─> Export to: {app}/{module}/custom/{doctype}.json
-    │   │
-    │   └─> Click "Export Customizations" (Core Frappe)
-    │       └─> frappe.modules.utils.export_customizations()
-    │           └─> Export to: {app}/{module}/custom/{doctype}.json
-    │
-    ├─> Open Server Script Form
-    │   └─> Click "📦 Export to Module"
-    │       └─> export_server_scripts_by_module()
-    │           └─> Export to: {app}/fixtures/server_script.json
-    │
-    ├─> Open Client Script Form
-    │   └─> Click "📦 Export to Module"
-    │       └─> export_client_scripts_by_module()
-    │           └─> Export to: {app}/fixtures/client_script.json
-    │
-    └─> Open Custom HTML Block Form
-        └─> Click "📦 Export to Module"
-            └─> Select Module
-                └─> export_custom_html_blocks_by_module()
-                    └─> Export to: {app}/fixtures/custom_html_block.json
-```
-
-## Command-Line Workflow
+## Export Custom Fields / Property Setters
 
 ```
-bench --site [site] export-fixtures --app [app]
-    │
-    └─> frappe.utils.fixtures.export_fixtures()
-        └─> Reads hooks.py fixtures
-            └─> Export to: {app}/fixtures/{doctype}.json
+User Opens Customize Form / Custom Field / Property Setter
+    ↓
+Click "📦 Export to Module" Button
+    ↓
+Validate Developer Mode
+    ↓
+Get Module from Document
+    ↓
+Fetch All Custom Fields & Property Setters for Module
+    ↓
+Group by DocType
+    ↓
+Export to: {app}/{module}/custom/{doctype}.json
+    ↓
+Set sync_on_migrate if enabled
+    ↓
+Show Success Message
 ```
 
-## Common Workflow Steps
+## Export Server / Client Scripts
 
-1. **Developer Mode Check** - All exports require developer_mode enabled
-2. **Module Selection** - User selects target module (except fixtures export)
-3. **Data Collection** - System collects customization data from database
-4. **File Creation** - Creates/updates JSON files in appropriate locations
-5. **User Notification** - Shows success message with file paths
+```
+User Opens Server Script / Client Script Form
+    ↓
+Click "📦 Export to Module" Button
+    ↓
+Validate Developer Mode
+    ↓
+Get Module from Document
+    ↓
+Get App Name from Module
+    ↓
+Create fixtures folder (if not exists)
+    ↓
+Export Scripts to: {app}/fixtures/{doctype}.json
+    ↓
+Filter by module, order by idx/creation
+    ↓
+Show Success Message
+```
+
+## Export Custom HTML Block
+
+```
+User Opens Custom HTML Block Form
+    ↓
+Click "📦 Export to Module" Button
+    ↓
+Prompt for Module Selection
+    ↓
+Validate Developer Mode
+    ↓
+Get App Name from Module
+    ↓
+Create fixtures folder (if not exists)
+    ↓
+Export Block to: {app}/fixtures/custom_html_block.json
+    ↓
+Show Success Message
+```
+
+## Bulk Export Workflow
+
+```
+User Selects Multiple Records in List View
+    ↓
+Click Bulk Export Button
+    ↓
+Validate Developer Mode
+    ↓
+Group Records by (module, doctype)
+    ↓
+For Each (module, doctype) Combination:
+    ├─ Export using frappe.modules.utils.export_customizations
+    └─ Track exported files
+    ↓
+Show Summary (exported files count)
+```
