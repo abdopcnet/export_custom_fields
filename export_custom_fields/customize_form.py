@@ -4,6 +4,7 @@
 import frappe
 import os
 from frappe import _, get_module_path, scrub
+from frappe.exceptions import DoesNotExistError
 
 
 @frappe.whitelist()
@@ -241,11 +242,20 @@ def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, pr
                 if file_path and file_path not in all_exported_files:
                     all_exported_files.append(file_path)
                     exported_doctypes.add((module, doctype))
+            except DoesNotExistError:
+                # Skip doctypes that don't exist (e.g., from uninstalled apps)
+                frappe.log_error(
+                    "[customize_form.py] method: bulk_export_customizations - Doctype '{0}' not found (Module: {1}). Skipping.".format(
+                        doctype, module
+                    ),
+                    "Bulk Export Customizations - Skipped Doctype",
+                )
+                continue
             except Exception as e:
                 # If export fails for one doctype, continue with others
                 frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Doctype: {0}, Module: {1}".format(
-                        doctype, module
+                    "[customize_form.py] method: bulk_export_customizations - Doctype: {0}, Module: {1}, Error: {2}".format(
+                        doctype, module, str(e)
                     ),
                     "Bulk Export Customizations",
                 )
