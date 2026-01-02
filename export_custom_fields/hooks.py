@@ -52,7 +52,8 @@ doctype_js = {
 	"Client Script": "public/js/client_script.js",
 	"Custom Field": "public/js/custom_field.js",
 	"Property Setter": "public/js/property_setter.js",
-	"Custom HTML Block": "public/js/custom_html_block.js"
+	"Custom HTML Block": "public/js/custom_html_block.js",
+	"Web Page": "public/js/web_page.js"
 }
 
 doctype_list_js = {
