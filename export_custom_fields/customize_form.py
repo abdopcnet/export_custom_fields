@@ -193,6 +193,9 @@ def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, pr
         # Group by (module, doctype) - same doctype can have different modules
         module_doctype_set = set()  # {(module, doctype), ...}
 
+        # Track records without modules for logging
+        records_without_module = []
+
         # Process Custom Fields
         for field in all_custom_fields:
             # Skip system generated fields (same as original export)
@@ -202,10 +205,10 @@ def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, pr
             module = field.get("module")
             doctype = field.get("dt")
 
-            # Stop export if module is not defined
+            # Skip records without module (they can't be exported)
             if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(field.get("name")))
+                records_without_module.append(("Custom Field", field.get("name"), doctype))
+                continue
 
             module_doctype_set.add((module, doctype))
 
@@ -214,12 +217,23 @@ def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, pr
             module = ps.get("module")
             doctype = ps.get("doc_type")
 
-            # Stop export if module is not defined
+            # Skip records without module (they can't be exported)
             if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(ps.get("name")))
+                records_without_module.append(("Property Setter", ps.get("name"), doctype))
+                continue
 
             module_doctype_set.add((module, doctype))
+
+        # Log records without modules
+        if records_without_module:
+            skipped_records = ", ".join(["{0} ({1})".format(name, doctype) for record_type, name, doctype in records_without_module[:10]])
+            if len(records_without_module) > 10:
+                skipped_records += " and {0} more...".format(len(records_without_module) - 10)
+
+            frappe.log_error(
+                "Skipped {0} record(s) without module: {1}".format(len(records_without_module), skipped_records),
+                "Bulk Export - Records Without Module",
+            )
 
         # Import frappe.modules.utils functions
         from frappe.modules.utils import export_customizations
@@ -244,11 +258,43 @@ def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, pr
                     exported_doctypes.add((module, doctype))
             except DoesNotExistError:
                 # Skip doctypes that don't exist (e.g., from uninstalled apps)
+                # Unset module field for records referencing this doctype so they can be easily identified
+                unset_count = 0
+
+                # Unset module for Custom Fields
+                custom_fields = frappe.get_all(
+                    "Custom Field",
+                    filters={"dt": doctype, "module": module},
+                    fields=["name"]
+                )
+                for cf in custom_fields:
+                    frappe.db.set_value("Custom Field", cf.name, "module", "")
+                    unset_count += 1
+
+                # Unset module for Property Setters
+                property_setters = frappe.get_all(
+                    "Property Setter",
+                    filters={"doc_type": doctype, "module": module},
+                    fields=["name"]
+                )
+                for ps in property_setters:
+                    frappe.db.set_value("Property Setter", ps.name, "module", "")
+                    unset_count += 1
+
+                frappe.db.commit()
+
+                # Log with shorter title to avoid CharacterLengthExceededError (max 140 chars)
+                # Title format: "Doctype not found: {doctype}" (truncate doctype if needed)
+                max_doctype_len = 120  # Leave room for "Doctype not found: " prefix
+                error_title = "Doctype not found: {0}".format(doctype[:max_doctype_len])
+                if len(error_title) > 140:
+                    error_title = error_title[:140]
+
+                error_message = "Module: {0}, Unset module for {1} record(s). Skipping export.".format(module, unset_count)
+
                 frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Doctype '{0}' not found (Module: {1}). Skipping.".format(
-                        doctype, module
-                    ),
-                    "Bulk Export Customizations - Skipped Doctype",
+                    error_title,
+                    error_message,
                 )
                 continue
             except Exception as e:
