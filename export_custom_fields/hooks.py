@@ -53,7 +53,19 @@ doctype_js = {
 	"Custom Field": "public/js/custom_field.js",
 	"Property Setter": "public/js/property_setter.js",
 	"Custom HTML Block": "public/js/custom_html_block.js",
-	"Web Page": "public/js/web_page.js"
+	"Web Page": "public/js/web_page.js",
+	"Page": "public/js/page.js",
+	"Report": "public/js/report.js",
+	"Dashboard": "public/js/dashboard.js",
+	"Dashboard Chart": "public/js/dashboard_chart.js",
+	"Form Tour": "public/js/form_tour.js",
+	"Number Card": "public/js/number_card.js",
+	"Workspace": "public/js/workspace.js",
+	"Notification": "public/js/notification.js",
+	"Print Format": "public/js/print_format.js",
+	"Web Form": "public/js/web_form.js",
+	"Web Template": "public/js/web_template.js",
+	"Website Theme": "public/js/website_theme.js"
 }
 
 doctype_list_js = {
