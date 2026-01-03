@@ -36,10 +36,82 @@ Export customizations organized by module, making it easy to manage and deploy c
     - Single block export with module selection
     - Supports `sync_on_migrate` flag
 
-5. **Web Pages** ⭐ NEW
+5. **Web Pages**
+
     - Export to: `{app}/fixtures/Web Page.json`
     - Special handling for Web Page Block child table
     - Exports parent Web Pages and related child records separately
+
+6. **Pages** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Page.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+7. **Reports** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Report.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+8. **Dashboards** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Dashboard.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+9. **Dashboard Charts** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Dashboard Chart.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+10. **Form Tours** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Form Tour.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+11. **Number Cards** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Number Card.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+12. **Workspaces** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Workspace.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+13. **Notifications** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Notification.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+14. **Print Formats** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Print Format.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+15. **Web Forms** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Web Form.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+16. **Web Templates** ⭐ NEW
+
+    - Export to: `{app}/fixtures/Web Template.json`
+    - Filters by module
+    - Ordered by index and creation date
+
+17. **Website Themes** ⭐ NEW
+    - Export to: `{app}/fixtures/Website Theme.json`
+    - Filters by module
+    - Ordered by index and creation date
 
 ### 📦 Bulk Export Operations
 
@@ -61,7 +133,7 @@ Export customizations organized by module, making it easy to manage and deploy c
 #### Set Module Functionality
 
 -   Bulk set module for multiple records
--   Supports: Custom Field, Property Setter, Server Script, Client Script, Custom HTML Block, Web Page
+-   Supports: Custom Field, Property Setter, Server Script, Client Script, Custom HTML Block, Web Page, Page, Report, Dashboard, Dashboard Chart, Form Tour, Number Card, Workspace, Notification, Print Format, Web Form, Web Template, Website Theme
 -   Validates module existence before assignment
 -   Updates records in batch with transaction support
 
@@ -104,6 +176,18 @@ Export customizations organized by module, making it easy to manage and deploy c
 -   Custom HTML Block
 -   Web Page
 -   Web Page Block (child table)
+-   Page
+-   Report
+-   Dashboard
+-   Dashboard Chart
+-   Form Tour
+-   Number Card
+-   Workspace
+-   Notification
+-   Print Format
+-   Web Form
+-   Web Template
+-   Website Theme
 
 ### 🔒 Security & Validation
 
