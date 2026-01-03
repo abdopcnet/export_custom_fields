@@ -48,7 +48,7 @@ All methods are decorated with `@frappe.whitelist()` and require developer mode.
 
 -   **Description**: Update module for multiple records
 -   **Parameters**:
-    -   `doctype` (str): DocType name ('Custom Field', 'Property Setter', 'Server Script', 'Client Script', 'Custom HTML Block', 'Web Page')
+    -   `doctype` (str): DocType name ('Custom Field', 'Property Setter', 'Server Script', 'Client Script', 'Custom HTML Block', 'Web Page', 'Page', 'Report', 'Dashboard', 'Dashboard Chart', 'Form Tour', 'Number Card', 'Workspace', 'Notification', 'Print Format', 'Web Form', 'Web Template', 'Website Theme')
     -   `names` (list): List of document names to update
     -   `module` (str): Module name to set
 -   **Returns**: `dict` - `{"updated_count": int, "message": str}`
@@ -155,6 +155,174 @@ All methods are decorated with `@frappe.whitelist()` and require developer mode.
 
 ---
 
+## export_custom_fields.page ⭐ NEW
+
+### `export_pages_by_module(module)`
+
+-   **Description**: Export Pages for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Page.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.report ⭐ NEW
+
+### `export_reports_by_module(module)`
+
+-   **Description**: Export Reports for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Report.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.dashboard ⭐ NEW
+
+### `export_dashboards_by_module(module)`
+
+-   **Description**: Export Dashboards for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Dashboard.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.dashboard_chart ⭐ NEW
+
+### `export_dashboard_charts_by_module(module)`
+
+-   **Description**: Export Dashboard Charts for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Dashboard Chart.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.form_tour ⭐ NEW
+
+### `export_form_tours_by_module(module)`
+
+-   **Description**: Export Form Tours for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Form Tour.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.number_card ⭐ NEW
+
+### `export_number_cards_by_module(module)`
+
+-   **Description**: Export Number Cards for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Number Card.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.workspace ⭐ NEW
+
+### `export_workspaces_by_module(module)`
+
+-   **Description**: Export Workspaces for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Workspace.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.notification ⭐ NEW
+
+### `export_notifications_by_module(module)`
+
+-   **Description**: Export Notifications for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Notification.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.print_format ⭐ NEW
+
+### `export_print_formats_by_module(module)`
+
+-   **Description**: Export Print Formats for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Print Format.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.web_form ⭐ NEW
+
+### `export_web_forms_by_module(module)`
+
+-   **Description**: Export Web Forms for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Web Form.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.web_template ⭐ NEW
+
+### `export_web_templates_by_module(module)`
+
+-   **Description**: Export Web Templates for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Web Template.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
+## export_custom_fields.website_theme ⭐ NEW
+
+### `export_website_themes_by_module(module)`
+
+-   **Description**: Export Website Themes for the specified module to fixtures folder
+-   **Parameters**:
+    -   `module` (str): Module name
+-   **Returns**: `dict` - `{"app": str, "module": str}`
+-   **Export Location**: `{app}/fixtures/Website Theme.json`
+-   **Filters**: `{"module": module}`
+-   **Order**: `idx asc, creation asc`
+
+---
+
 ## API Method Summary
 
 ### Export Methods by DocType
@@ -168,6 +336,18 @@ All methods are decorated with `@frappe.whitelist()` and require developer mode.
 | Custom HTML Block | `export_custom_html_blocks_by_module()` | `{app}/fixtures/Custom HTML Block.json` |
 | Web Page          | `export_web_pages_by_module()`          | `{app}/fixtures/Web Page.json`          |
 | Web Page Block    | `export_web_pages_by_module()`          | `{app}/fixtures/Web Page Block.json`    |
+| Page              | `export_pages_by_module()`              | `{app}/fixtures/Page.json`              |
+| Report            | `export_reports_by_module()`            | `{app}/fixtures/Report.json`            |
+| Dashboard         | `export_dashboards_by_module()`         | `{app}/fixtures/Dashboard.json`         |
+| Dashboard Chart   | `export_dashboard_charts_by_module()`   | `{app}/fixtures/Dashboard Chart.json`   |
+| Form Tour         | `export_form_tours_by_module()`         | `{app}/fixtures/Form Tour.json`         |
+| Number Card       | `export_number_cards_by_module()`       | `{app}/fixtures/Number Card.json`       |
+| Workspace         | `export_workspaces_by_module()`         | `{app}/fixtures/Workspace.json`         |
+| Notification      | `export_notifications_by_module()`      | `{app}/fixtures/Notification.json`      |
+| Print Format      | `export_print_formats_by_module()`      | `{app}/fixtures/Print Format.json`      |
+| Web Form          | `export_web_forms_by_module()`          | `{app}/fixtures/Web Form.json`          |
+| Web Template      | `export_web_templates_by_module()`      | `{app}/fixtures/Web Template.json`      |
+| Website Theme     | `export_website_themes_by_module()`     | `{app}/fixtures/Website Theme.json`     |
 
 ### Bulk Export Methods
 
