@@ -3,7 +3,8 @@
 
 import frappe
 import os
-from frappe import _, get_module_path, scrub
+from frappe import _, scrub
+from frappe.core.doctype.data_import.data_import import export_json
 
 
 @frappe.whitelist()
@@ -17,251 +18,135 @@ def has_custom_fields_in_module(module):
 
 
 @frappe.whitelist()
-def export_custom_fields_by_module(module, sync_on_migrate=True):
-    """Export Custom Fields and Property Setters for the specified module to JSON files.
-    This follows the same pattern as frappe.modules.utils.export_customizations"""
-
-    if not frappe.conf.developer_mode:
-        frappe.throw(
-            _("Only allowed to export customizations in developer mode"))
-
-    sync_on_migrate = frappe.utils.cint(sync_on_migrate)
-
-    # Get custom fields for the specified module
-    custom_fields = frappe.get_all(
-        "Custom Field",
-        filters={"module": module},
-        fields="*",
-        order_by="name"
-    )
-
-    # Get property setters for the specified module
-    property_setters = frappe.get_all(
-        "Property Setter",
-        filters={"module": module},
-        fields="*",
-        order_by="name"
-    )
-
-    # Check if there are any customizations to export
-    if not custom_fields and not property_setters:
-        frappe.msgprint(
-            _("No custom fields or property setters found for module: {0}").format(module))
-        return
-
-    # Group custom fields by doctype
-    doctype_fields = {}
-    for field in custom_fields:
-        doctype = field.get("dt")
-        if doctype not in doctype_fields:
-            doctype_fields[doctype] = []
-        doctype_fields[doctype].append(field)
-
-    # Group property setters by doctype
-    doctype_property_setters = {}
-    for ps in property_setters:
-        doctype = ps.get("doc_type")
-        if doctype not in doctype_property_setters:
-            doctype_property_setters[doctype] = []
-        doctype_property_setters[doctype].append(ps)
-
-    # Get DocType Links for doctypes in this module
-    # Get all doctypes that have customizations first
-    all_doctypes = set(doctype_fields.keys()) | set(
-        doctype_property_setters.keys())
-
-    # Get Custom DocType Links for these doctypes
-    # Note: DocType Link doesn't have a module field, so we filter by custom=1
-    # Custom links are typically from custom apps, but cannot be separated by module
-    # System export gets ALL links (custom + standard), but for module-based export,
-    # we only export custom links to avoid mixing standard links from core apps
-    doctype_links = {}
-    if all_doctypes:
-        links = frappe.get_all(
-            "DocType Link",
-            fields="*",
-            filters={"parent": ["in", list(all_doctypes)], "custom": 1},
-            order_by="name"
-        )
-        for link in links:
-            doctype = link.get("parent")
-            if doctype not in doctype_links:
-                doctype_links[doctype] = []
-            doctype_links[doctype].append(link)
-
-    # Create export folder if it doesn't exist
-    folder_path = os.path.join(get_module_path(module), "custom")
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
-    exported_files = []
-
-    # Export each doctype separately (same as original)
-    for doctype in all_doctypes:
-        fields = doctype_fields.get(doctype, [])
-        ps_list = doctype_property_setters.get(doctype, [])
-        links_list = doctype_links.get(doctype, [])
-
-        # Prepare data for export (same structure as system export)
-        # Order matches frappe.modules.utils.export_customizations
-        custom = {
-            "custom_fields": fields,
-            "custom_perms": [],
-            "doctype": doctype,
-            "links": links_list,
-            "property_setters": ps_list,
-            "sync_on_migrate": sync_on_migrate,
-        }
-
-        # Export to JSON file (same naming convention as original)
-        filename = scrub(doctype) + ".json"
-        file_path = os.path.join(folder_path, filename)
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(frappe.as_json(custom, indent=2))
-
-        exported_files.append(file_path)
-
-    if exported_files:
-        frappe.msgprint(_("Custom Fields and Property Setters for module <b>{0}</b> exported to:<br>{1}").format(
-            module, "<br>".join(exported_files)
-        ))
-        return exported_files
-
-
-@frappe.whitelist()
-def bulk_export_customizations(sync_on_migrate=True, custom_field_names=None, property_setter_names=None):
-    """Bulk export Custom Fields and Property Setters using frappe.modules.utils.export_customizations.
-    Works like the "Export Customizations" button in form view, but for multiple records.
-    Each record must have a module defined. If module is not defined, export stops with error message.
+def bulk_export_fixtures_for_module(module):
+    """Export Custom Fields and Property Setters for the specified module.
+    Exports to [app]/fixtures/ directory.
 
     Args:
-        sync_on_migrate: Whether to sync on migrate (default: True)
-        custom_field_names: List of Custom Field names to export (optional)
-        property_setter_names: List of Property Setter names to export (optional)
+        module: Module name to export fixtures for
     """
 
     try:
         if not frappe.conf.developer_mode:
             frappe.throw(
-                _("Only allowed to export customizations in developer mode"))
+                _("Only allowed to export fixtures in developer mode"))
 
-        sync_on_migrate = frappe.utils.cint(sync_on_migrate)
+        if not module:
+            frappe.throw(_("Module is required"))
 
-        # Parse JSON if passed as string
-        if isinstance(custom_field_names, str):
-            custom_field_names = frappe.parse_json(custom_field_names)
-        if isinstance(property_setter_names, str):
-            property_setter_names = frappe.parse_json(property_setter_names)
+        # Validate module exists
+        if not frappe.db.exists("Module Def", module):
+            frappe.throw(_("Module '{0}' does not exist").format(module))
 
-        # Get custom fields - either selected ones or all visible
-        if custom_field_names:
-            all_custom_fields = frappe.get_all(
-                "Custom Field",
-                filters={"name": ["in", custom_field_names]},
-                fields=["name", "dt", "module", "is_system_generated"],
-                order_by="name"
-            )
-        else:
-            all_custom_fields = []
+        # Get module doc to determine app name
+        module_doc = frappe.get_doc("Module Def", module)
+        app_name = module_doc.app_name
+        if not app_name:
+            frappe.throw(_("Could not determine app name for module: {0}").format(module))
 
-        # Get property setters - either selected ones or all visible
-        if property_setter_names:
-            all_property_setters = frappe.get_all(
-                "Property Setter",
-                filters={"name": ["in", property_setter_names]},
-                fields=["name", "doc_type", "module"],
-                order_by="name"
-            )
-        else:
-            all_property_setters = []
+        # Get app path
+        app_path = frappe.get_app_path(app_name)
+        fixtures_path = os.path.join(app_path, "fixtures")
+        if not os.path.exists(fixtures_path):
+            os.makedirs(fixtures_path)
 
-        # If no names provided, get all records
-        if not custom_field_names and not property_setter_names:
-            all_custom_fields = frappe.get_all(
-                "Custom Field",
-                fields=["name", "dt", "module", "is_system_generated"],
-                order_by="name"
-            )
-            all_property_setters = frappe.get_all(
-                "Property Setter",
-                fields=["name", "doc_type", "module"],
-                order_by="name"
-            )
+        exported_files = []
 
-        # Group by (module, doctype) - same doctype can have different modules
-        module_doctype_set = set()  # {(module, doctype), ...}
+        # Export Custom Field
+        custom_field_path = os.path.join(fixtures_path, "custom_field.json")
+        export_json(
+            "Custom Field",
+            custom_field_path,
+            filters={"module": module},
+            order_by="idx asc, creation asc",
+        )
+        exported_files.append(custom_field_path)
 
-        # Process Custom Fields
-        for field in all_custom_fields:
-            # Skip system generated fields (same as original export)
-            if field.get("is_system_generated") == 1:
-                continue
-
-            module = field.get("module")
-            doctype = field.get("dt")
-
-            # Stop export if module is not defined
-            if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(field.get("name")))
-
-            module_doctype_set.add((module, doctype))
-
-        # Process Property Setters
-        for ps in all_property_setters:
-            module = ps.get("module")
-            doctype = ps.get("doc_type")
-
-            # Stop export if module is not defined
-            if not module:
-                frappe.throw(
-                    "{0} Module Not defined".format(ps.get("name")))
-
-            module_doctype_set.add((module, doctype))
-
-        # Import frappe.modules.utils functions
-        from frappe.modules.utils import export_customizations
-
-        # Export each (module, doctype) combination using the same method as form view
-        all_exported_files = []
-        exported_doctypes = set()  # Track exported doctypes to avoid duplicates
-
-        for module, doctype in module_doctype_set:
-            # Use the same export method as form view button
-            # This will export all Custom Fields and Property Setters for this doctype
-            # grouped by the specified module
-            try:
-                file_path = export_customizations(
-                    module=module,
-                    doctype=doctype,
-                    sync_on_migrate=sync_on_migrate,
-                    with_permissions=False  # Same as Custom Field form view
-                )
-                if file_path and file_path not in all_exported_files:
-                    all_exported_files.append(file_path)
-                    exported_doctypes.add((module, doctype))
-            except Exception as e:
-                # If export fails for one doctype, continue with others
-                frappe.log_error(
-                    "[customize_form.py] method: bulk_export_customizations - Doctype: {0}, Module: {1}".format(
-                        doctype, module
-                    ),
-                    "Bulk Export Customizations",
-                )
-                # Re-raise to stop export (as per requirement)
-                raise
+        # Export Property Setter
+        property_setter_path = os.path.join(fixtures_path, "property_setter.json")
+        export_json(
+            "Property Setter",
+            property_setter_path,
+            filters={"module": module},
+            order_by="idx asc, creation asc",
+        )
+        exported_files.append(property_setter_path)
 
         return {
+            "module": module,
+            "app": app_name,
+            "exported_files": exported_files
+        }
+
+    except Exception as e:
+        frappe.log_error(
+            "[customize_form.py] method: bulk_export_fixtures_for_module",
+            "Bulk Export Fixtures",
+        )
+        frappe.throw(_("Error during bulk export fixtures: {0}").format(str(e)))
+
+
+@frappe.whitelist()
+def bulk_export_fixtures_for_modules(modules):
+    """Export Custom Fields and Property Setters for multiple modules.
+    Exports each module to its app's fixtures/ directory.
+
+    Args:
+        modules: List of module names to export fixtures for
+    """
+
+    try:
+        if not frappe.conf.developer_mode:
+            frappe.throw(
+                _("Only allowed to export fixtures in developer mode"))
+
+        if not modules:
+            frappe.throw(_("Modules are required"))
+
+        # Parse JSON if passed as string
+        if isinstance(modules, str):
+            modules = frappe.parse_json(modules)
+
+        if not isinstance(modules, list):
+            frappe.throw(_("Modules must be a list"))
+
+        all_exported_files = []
+        exported_modules = []
+
+        # Export each module separately
+        for module in modules:
+            try:
+                result = bulk_export_fixtures_for_module(module)
+                if result and result.get("exported_files"):
+                    all_exported_files.extend(result.get("exported_files", []))
+                    exported_modules.append(module)
+            except Exception as e:
+                frappe.log_error(
+                    "[customize_form.py] method: bulk_export_fixtures_for_modules - Module: {0}".format(
+                        module),
+                    "Bulk Export Fixtures",
+                )
+                # Continue with other modules even if one fails
+                continue
+
+        if exported_modules:
+            frappe.msgprint(_("Fixtures for modules <b>{0}</b> exported successfully").format(
+                ", ".join(exported_modules)
+            ))
+        else:
+            frappe.throw(_("No fixtures exported. Please check errors in Error Log."))
+
+        return {
+            "modules": exported_modules,
             "exported_files": all_exported_files
         }
 
     except Exception as e:
         frappe.log_error(
-            "[customize_form.py] method: bulk_export_customizations",
-            "Bulk Export Customizations",
+            "[customize_form.py] method: bulk_export_fixtures_for_modules",
+            "Bulk Export Fixtures",
         )
-        frappe.throw(_("Error during bulk export"))
+        frappe.throw(_("Error during bulk export fixtures: {0}").format(str(e)))
 
 
 @frappe.whitelist()
