@@ -18,12 +18,13 @@ def has_custom_fields_in_module(module):
 
 
 @frappe.whitelist()
-def bulk_export_fixtures_for_module(module):
-    """Export Custom Fields and Property Setters for the specified module.
+def bulk_export_fixtures_for_module(module, doctype):
+    """Export Custom Fields or Property Setters for the specified module.
     Exports to [app]/fixtures/ directory.
 
     Args:
         module: Module name to export fixtures for
+        doctype: DocType to export ("Custom Field" or "Property Setter")
     """
 
     try:
@@ -34,9 +35,16 @@ def bulk_export_fixtures_for_module(module):
         if not module:
             frappe.throw(_("Module is required"))
 
+        if not doctype:
+            frappe.throw(_("DocType is required"))
+
         # Validate module exists
         if not frappe.db.exists("Module Def", module):
             frappe.throw(_("Module '{0}' does not exist").format(module))
+
+        # Validate doctype
+        if doctype not in ["Custom Field", "Property Setter"]:
+            frappe.throw(_("Invalid doctype. Must be 'Custom Field' or 'Property Setter'"))
 
         # Get module doc to determine app name
         module_doc = frappe.get_doc("Module Def", module)
@@ -50,32 +58,25 @@ def bulk_export_fixtures_for_module(module):
         if not os.path.exists(fixtures_path):
             os.makedirs(fixtures_path)
 
-        exported_files = []
+        # Determine file path based on doctype
+        if doctype == "Custom Field":
+            file_path = os.path.join(fixtures_path, "custom_field.json")
+        else:  # Property Setter
+            file_path = os.path.join(fixtures_path, "property_setter.json")
 
-        # Export Custom Field
-        custom_field_path = os.path.join(fixtures_path, "custom_field.json")
+        # Export the specified doctype
         export_json(
-            "Custom Field",
-            custom_field_path,
+            doctype,
+            file_path,
             filters={"module": module},
             order_by="idx asc, creation asc",
         )
-        exported_files.append(custom_field_path)
-
-        # Export Property Setter
-        property_setter_path = os.path.join(fixtures_path, "property_setter.json")
-        export_json(
-            "Property Setter",
-            property_setter_path,
-            filters={"module": module},
-            order_by="idx asc, creation asc",
-        )
-        exported_files.append(property_setter_path)
 
         return {
             "module": module,
             "app": app_name,
-            "exported_files": exported_files
+            "doctype": doctype,
+            "exported_files": [file_path]
         }
 
     except Exception as e:
