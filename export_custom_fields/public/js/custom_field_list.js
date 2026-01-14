@@ -3,11 +3,11 @@
 frappe.listview_settings['Custom Field'] = {
 	onload: function (listview) {
 		if (frappe.boot.developer_mode) {
-			// Bulk Export button
+			// Bulk Export Fixture button - always visible
 			listview.page.add_button(
-				__('Bulk Export Customizations'),
+				__('Bulk Export Fixture'),
 				function () {
-					let selected = listview.get_checked_items(true);
+					let selected = listview.get_checked_items();
 					if (!selected || selected.length === 0) {
 						frappe.msgprint({
 							message: __('Please select records to export.'),
@@ -16,27 +16,48 @@ frappe.listview_settings['Custom Field'] = {
 						return;
 					}
 
+					// Check if all selected items have module and same module
+					let modules = [];
+					let hasNoModule = false;
+					for (let item of selected) {
+						if (!item.module) {
+							hasNoModule = true;
+							break;
+						}
+						if (modules.indexOf(item.module) === -1) {
+							modules.push(item.module);
+						}
+					}
+
+					// Show error if any record doesn't have module
+					if (hasNoModule) {
+						frappe.throw(__('Set Module First Before Exporting'));
+						return;
+					}
+
+					// Show error if records belong to different modules
+					if (modules.length > 1) {
+						frappe.throw(
+							__(
+								'Selected records belong to different modules. Please select records with the same module.',
+							),
+						);
+						return;
+					}
+
+					if (modules.length === 0) {
+						frappe.throw(__('Set Module First Before Exporting'));
+						return;
+					}
+
+					// Export using the single module
 					frappe.call({
-						method: 'export_custom_fields.customize_form.bulk_export_customizations',
+						method: 'export_custom_fields.customize_form.bulk_export_fixtures_for_module',
 						args: {
-							custom_field_names: selected,
-							sync_on_migrate: 1,
+							module: modules[0],
 						},
 						freeze: true,
-						freeze_message: __('Exporting customizations...'),
-						callback: function (r) {
-							if (!r.exc && r.message) {
-								let count = r.message.exported_files
-									? r.message.exported_files.length
-									: 0;
-								frappe.msgprint({
-									message: __(
-										'Bulk export completed successfully! {0} files exported.',
-									).replace('{0}', count),
-									indicator: 'green',
-								});
-							}
-						},
+						freeze_message: __('Exporting fixtures...'),
 					});
 				},
 				{ btn_class: 'btn-danger' },
