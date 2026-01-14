@@ -15,6 +15,7 @@ frappe.ui.form.on('Custom Field', {
 						method: 'export_custom_fields.customize_form.bulk_export_fixtures_for_module',
 						args: {
 							module: frm.doc.module,
+							doctype: 'Custom Field',
 						},
 						freeze: true,
 						freeze_message: __('Exporting fixtures...'),
