@@ -50,11 +50,12 @@ frappe.listview_settings['Property Setter'] = {
 						return;
 					}
 
-					// Export using the single module
+					// Export Property Setter only
 					frappe.call({
 						method: 'export_custom_fields.customize_form.bulk_export_fixtures_for_module',
 						args: {
 							module: modules[0],
+							doctype: 'Property Setter',
 						},
 						freeze: true,
 						freeze_message: __('Exporting fixtures...'),
