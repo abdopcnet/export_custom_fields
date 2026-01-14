@@ -8,17 +8,16 @@ frappe.provide('frappe.customize_form');
 frappe.ui.form.on('Custom Field', {
 	refresh: function (frm) {
 		if (frappe.boot.developer_mode) {
-			// Export Customizations button
-			if (frm.doc.dt && frm.doc.module && frm.doc.is_system_generated === 0) {
-				frm.add_custom_button(__('Export Customizations'), function () {
+			// Export Fixture button - only show if module is set
+			if (frm.doc.module) {
+				frm.add_custom_button(__('Export Fixture'), function () {
 					frappe.call({
-						method: 'frappe.modules.utils.export_customizations',
+						method: 'export_custom_fields.customize_form.bulk_export_fixtures_for_module',
 						args: {
-							doctype: frm.doc.dt,
 							module: frm.doc.module,
-							sync_on_migrate: 1,
-							with_permissions: 0,
 						},
+						freeze: true,
+						freeze_message: __('Exporting fixtures...'),
 					});
 				}).addClass('btn-danger');
 			}
