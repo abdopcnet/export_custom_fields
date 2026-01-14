@@ -8,21 +8,6 @@ frappe.provide('frappe.customize_form');
 frappe.ui.form.on('Property Setter', {
 	refresh: function (frm) {
 		if (frappe.boot.developer_mode) {
-			// Export Fixture button - only show if module is set
-			if (frm.doc.module) {
-				frm.add_custom_button(__('Export Fixture'), function () {
-					frappe.call({
-						method: 'export_custom_fields.customize_form.bulk_export_fixtures_for_module',
-						args: {
-							module: frm.doc.module,
-							doctype: 'Property Setter',
-						},
-						freeze: true,
-						freeze_message: __('Exporting fixtures...'),
-					});
-				}).addClass('btn-danger');
-			}
-
 			// Set Module button
 			if (frm.doc.name) {
 				frm.add_custom_button(__('Set Module'), function () {
